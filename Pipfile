@@ -10,8 +10,6 @@ scrapy = "*"
 sqlalchemy = "*"
 alembic = "*"
 mysqlclient = "*"
-pipenv = "*"
-python-dotenv = "*"
 
 [requires]
 python_version = "3.8"

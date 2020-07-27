@@ -8,13 +8,13 @@ from scrapy.utils.project import get_project_settings
 config = context.config
 fileConfig(config.config_file_name)
 
-db_url = get_project_settings().get("CONNECTION_STRING")
+db_url = get_project_settings().get("DB_URL")
 config.set_main_option('sqlalchemy.url', db_url)
 
-from database.connect import Base
-from database.models.product import Product
-from database.models.usuallyboughtnext import UsuallyBoughtNext
-from database.models.review import Review
+from tesco.database.connect import Base
+from tesco.database.models.product import Product
+from tesco.database.models.usuallyboughtnext import UsuallyBoughtNext
+from tesco.database.models.review import Review
 target_metadata = Base.metadata
 
 

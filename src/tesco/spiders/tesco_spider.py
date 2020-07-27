@@ -3,12 +3,11 @@ import unicodedata
 import json
 from scrapy.spiders import Rule, CrawlSpider
 from scrapy.linkextractors import LinkExtractor
-from tesco.items import ProductItem, UsuallyBoughtNextItem, ReviewItem, CustomLoader
+from tesco.items.items import ProductItem, UsuallyBoughtNextItem, ReviewItem, CustomLoader
 
 
 class TescoSpider(CrawlSpider):
     name = 'tesco'
-
     allowed_domains = ['www.tesco.com']
 
     custom_settings = {
@@ -25,7 +24,8 @@ class TescoSpider(CrawlSpider):
     }
 
     def start_requests(self):
-        yield scrapy.Request(self.url)
+        for request in self.get_requests(name=self.name):
+            yield request
 
     rules = (
         # RULE: following each product and parse data
@@ -78,24 +78,19 @@ class TescoSpider(CrawlSpider):
 
         # PARSE USUALLY BOUGHT NEXT PRODUCTS
         if json_data['recommendations']['tescoRecommendations'] is not None:
+            loader_bought_next = CustomLoader(item=UsuallyBoughtNextItem(), response=response)
             next_products = json_data['recommendations']['tescoRecommendations'][product_json_data['baseProductId']]['productItems']['serializedData']
             for product in next_products['_keys']:
-                yield self.parse_bought_next(response, next_products, product, _id)
+                product_data = next_products[product]['serializedData']['product']['serializedData']
+                loader_bought_next.add_value('id', _id)
+                loader_bought_next.add_value('url', 'https://www.tesco.com/groceries/en-GB/products/' + product)
+                loader_bought_next.add_value('image_url', product_data['defaultImageUrl'])
+                loader_bought_next.add_value('title', product_data['title'])
+                loader_bought_next.add_value('price', product_data['price'])
+                yield loader_bought_next.load_item()
 
         # PARSE REVIEW
-        yield scrapy.Request(url=response.url, callback=self.parse_review, meta={'id': id}, dont_filter=True)
-
-    def parse_bought_next(self, response, next_products, product, _id):
-        loader_bought_next = CustomLoader(item=UsuallyBoughtNextItem(), response=response)
-
-        product_data = next_products[product]['serializedData']['product']['serializedData']
-        loader_bought_next.add_value('id', _id)
-        loader_bought_next.add_value('url', 'https://www.tesco.com/groceries/en-GB/products/' + product)
-        loader_bought_next.add_value('image_url', product_data['defaultImageUrl'])
-        loader_bought_next.add_value('title', product_data['title'])
-        loader_bought_next.add_value('price', product_data['price'])
-
-        return loader_bought_next.load_item()
+        yield scrapy.Request(url=response.url, callback=self.parse_review, meta={'id': _id}, dont_filter=True)
 
     def parse_review(self, response):
         loader = CustomLoader(item=ReviewItem(), response=response)
@@ -192,6 +187,13 @@ class TescoSpider(CrawlSpider):
         new_str = new_str.replace('\a', '')
         new_str = new_str.replace('\t', '')
         new_str = new_str.replace('\u2019', '`')
-
+        new_str = new_str.replace('\u0301', '')
+        new_str = new_str.replace('\u212e', 'e')
         json_data = json.loads(new_str)
         return json_data
+
+    def get_requests(self, name=name):
+        with open('requests_links.json', encoding='utf-8') as links_json:
+            json_data = json.load(links_json)
+            for link in json_data[name]:
+                yield scrapy.Request(link, dont_filter=True)

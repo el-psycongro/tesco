@@ -1,8 +1,8 @@
 
 from sqlalchemy.orm import sessionmaker
-from database.connect import engine
-from database.models.usuallyboughtnext import UsuallyBoughtNext
-from tesco.items import UsuallyBoughtNextItem
+from tesco.database.connect import engine
+from tesco.database.models.usuallyboughtnext import UsuallyBoughtNext
+from tesco.items.items import UsuallyBoughtNextItem
 
 
 class UsuallyBoughtNextPipeline:

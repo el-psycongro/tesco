@@ -1,8 +1,8 @@
 
 from sqlalchemy.orm import sessionmaker
-from database.models.product import Product
-from database.connect import engine
-from tesco.items import ProductItem
+from tesco.database.models.product import Product
+from tesco.database.connect import engine
+from tesco.items.items import ProductItem
 
 
 class ProductPipeline:

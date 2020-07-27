@@ -1,7 +1,7 @@
 
 from sqlalchemy import Integer, String, DECIMAL, Column, ForeignKey
 from sqlalchemy.orm import relationship
-from database.connect import Base
+from tesco.database.connect import Base
 
 
 class UsuallyBoughtNext(Base):

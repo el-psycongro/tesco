@@ -1,8 +1,8 @@
 
 from sqlalchemy.orm import sessionmaker
-from database.connect import engine
-from database.models.review import Review
-from tesco.items import ReviewItem
+from tesco.database.connect import engine
+from tesco.database.models.review import Review
+from tesco.items.items import ReviewItem
 
 
 class ReviewPipeline:

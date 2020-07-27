@@ -1,8 +1,7 @@
 
 from sqlalchemy import Integer, String, DECIMAL, Column
 from sqlalchemy.orm import relationship
-from scrapy.exceptions import NotConfigured
-from database.connect import Base
+from tesco.database.connect import Base
 
 
 class Product(Base):
