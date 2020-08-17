@@ -13,22 +13,6 @@ Paste links for scraping into <b>requst_links.json</b>
 ```shell 
     $ cd path/to/project  
 ```
- - **<b>Before start spider first time:**
-    - configure connection in  <b>.env</b>
-    - manually create table using exist migrations with command(into database folder inside "scrapy" container):  
-    
-```shell 
-    $ docker-compose -f docker-compose.deploy.yml up 
-```
-```shell 
-    $ docker-compose run scrapy bash 
-```
-```shell 
-    $ cd path/to/database
-```
-```shell
-    $ alembic upgrade head
-```
  ### Start spider
  - **Docker**
     > parsing will be start automatically
