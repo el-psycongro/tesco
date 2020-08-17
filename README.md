@@ -18,7 +18,7 @@ Paste links for scraping into <b>requst_links.json</b>
     - manually create table using exist migrations with command(into database folder inside "scrapy" container):  
     
 ```shell 
-    $ docker-compose -f docker-compose.deploy.yml build 
+    $ docker-compose -f docker-compose.deploy.yml up 
 ```
 ```shell 
     $ docker-compose run scrapy bash 
@@ -33,5 +33,5 @@ Paste links for scraping into <b>requst_links.json</b>
  - **Docker**
     > parsing will be start automatically
     ```shell 
-        $ docker-compose -f docker-compose.deploy.yml up
+        $ docker-compose -f docker-compose.deploy.yml run scrapy scrapy crawl tesco
     ```

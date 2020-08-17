@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('review',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
-    sa.Column('title', sa.String(length=50), nullable=False),
+    sa.Column('title', sa.String(length=50), nullable=True),
     sa.Column('stars', sa.Integer(), nullable=False),
     sa.Column('author', sa.String(length=50), nullable=True),
     sa.Column('date', sa.String(length=20), nullable=False),

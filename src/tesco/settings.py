@@ -12,18 +12,16 @@ NEWSPIDER_MODULE = 'tesco.spiders'
 ROBOTSTXT_OBEY = False
 
 # ***  LOGGER  ***
-LOG_LEVEL = os.getenv("LOG_LEVEL")
+LOG_LEVEL = "INFO"
 LOG_FILE = BOT_NAME + str(int(time.time())) + '.log'
 logger = logging.getLogger(__name__)
-
 
 # *** DATABASE ***
 DB_URL = os.getenv("DB_URL")
 
 ITEM_PIPELINES = {
-     'tesco.pipelines.defaultitemvalue.DefaultItemValuePipeline': 200,
-     'tesco.pipelines.product.ProductPipeline': 300,
-     'tesco.pipelines.usuallyboughtnext.UsuallyBoughtNextPipeline': 400,
-     'tesco.pipelines.review.ReviewPipeline': 500,
+    'tesco.pipelines.defaultitemvalue.DefaultItemValuePipeline': 200,
+    'tesco.pipelines.product.ProductPipeline': 300,
+    'tesco.pipelines.usuallyboughtnext.UsuallyBoughtNextPipeline': 400,
+    'tesco.pipelines.review.ReviewPipeline': 500,
 }
-

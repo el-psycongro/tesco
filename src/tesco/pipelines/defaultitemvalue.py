@@ -1,4 +1,4 @@
-from tesco.items.items import ProductItem
+from tesco.items.items import ProductItem, ReviewItem
 
 
 class DefaultItemValuePipeline:

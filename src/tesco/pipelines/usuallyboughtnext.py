@@ -1,4 +1,3 @@
-
 from sqlalchemy.orm import sessionmaker
 from tesco.database.connect import engine
 from tesco.database.models.usuallyboughtnext import UsuallyBoughtNext
@@ -26,10 +25,7 @@ class UsuallyBoughtNextPipeline:
             except:
                 self.session.rollback()
                 raise
-
         return item
 
     def close_spider(self, spider):
         self.session.close()
-
-

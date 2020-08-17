@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from scrapy import Field, Item
-from scrapy.loader.processors import TakeFirst
+from scrapy.loader.processors import TakeFirst, Compose
 from scrapy.loader import ItemLoader
+from datetime import datetime
+from scrapy.loader.processors import MapCompose
 
 
 class CustomLoader(ItemLoader):
-    default_output_processor = TakeFirst()
+    default_output_processor = Compose(lambda v: v[-1])
+
+
+def epoch_to_date(value):
+    date = datetime.utcfromtimestamp(value/1000.).strftime('%Y %m %d')
+    return date
 
 
 class ProductItem(Item):
@@ -24,10 +31,10 @@ class ProductItem(Item):
 
 class ReviewItem(Item):
     id = Field()
-    title = Field()
+    title = Field(default=None)
     stars = Field()
     author = Field()
-    date = Field()
+    date = Field(output_processor=Compose(lambda v: v[-1], epoch_to_date))
     text = Field()
 
 

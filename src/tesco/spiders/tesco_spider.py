@@ -27,14 +27,26 @@ class TescoSpider(CrawlSpider):
         for request in self.get_requests(name=self.name):
             yield request
 
+    @staticmethod
+    def get_requests(name=name):
+        with open('requests_links.json', 'r', encoding='utf-8') as links_json:
+            json_data = json.load(links_json)
+            if name in json_data:
+                return list(map(scrapy.Request, json_data[name]))
+            return 0
+
     rules = (
         # RULE: following each product and parse data
         Rule(LinkExtractor(
-            restrict_xpaths='//ul[@class="product-list grid"]//div[@class="tile-content"]/a'), callback='parse_product',
+           restrict_xpaths='//ul[@class="product-list grid"]//div[@class="tile-content"]/a'), callback='parse_product',
+           follow=True),
+        # RULE: follow next reviews page and parse
+        Rule(LinkExtractor(
+            restrict_xpaths='//div[@data-auto="review-list-container"]/div[2]/p[2]/a'), callback='parse_review',
             follow=True),
         # RULE: open new page with product list
         Rule(LinkExtractor(
-            restrict_xpaths='//nav[@class="pagination--page-selector-wrapper"]//li[last()]/a'), follow=True),
+                restrict_xpaths='//nav[@class="pagination--page-selector-wrapper"]//li[last()]/a'), follow=True),
     )
 
     def parse_product(self, response):
@@ -42,13 +54,14 @@ class TescoSpider(CrawlSpider):
 
         str_json_data = response.xpath('//body/@data-redux-state').get()
         json_data = self.get_json_load_data(str_json_data)
+
         product_json_data = json_data['productDetails']['product']
 
         url = response.url
         loader.add_value('url', url)
 
-        _id = self._parse_id(product_json_data)
-        loader.add_value('id', _id)
+        product_id = self._parse_id(product_json_data)
+        loader.add_value('id', product_id)
 
         image_url = self._parse_image_url(product_json_data)
         loader.add_value('image_url', image_url)
@@ -82,7 +95,7 @@ class TescoSpider(CrawlSpider):
             next_products = json_data['recommendations']['tescoRecommendations'][product_json_data['baseProductId']]['productItems']['serializedData']
             for product in next_products['_keys']:
                 product_data = next_products[product]['serializedData']['product']['serializedData']
-                loader_bought_next.add_value('id', _id)
+                loader_bought_next.add_value('id', product_id)
                 loader_bought_next.add_value('url', 'https://www.tesco.com/groceries/en-GB/products/' + product)
                 loader_bought_next.add_value('image_url', product_data['defaultImageUrl'])
                 loader_bought_next.add_value('title', product_data['title'])
@@ -90,40 +103,42 @@ class TescoSpider(CrawlSpider):
                 yield loader_bought_next.load_item()
 
         # PARSE REVIEW
-        yield scrapy.Request(url=response.url, callback=self.parse_review, meta={'id': _id}, dont_filter=True)
+        loader_review = CustomLoader(item=ReviewItem(), response=response)
+        product_id = json_data['productDetails']['product']['id']
+        reviews = json_data['productDetails']['product']["reviews"]["entries"]
+        for review in reviews:
+            loader_review.add_value('id', product_id)
+            title = review["summary"] if review["summary"] else 'None'
+            loader_review.add_value('title', title)
+            loader_review.add_value('stars', review["rating"]["value"])
+            author = review["syndicationSource"]["name"] if review["syndicated"] else 'A Tesco Customer'
+            loader_review.add_value('author', author)
+            loader_review.add_value('date', review["submissionTime"])
+            loader_review.add_value('text', review["text"] if review["text"] else 'None')
+            yield loader_review.load_item()
 
     def parse_review(self, response):
-        loader = CustomLoader(item=ReviewItem(), response=response)
+        str_json_data = response.xpath('//body/@data-redux-state').get()
+        json_data = self.get_json_load_data(str_json_data)
 
-        reviews = response.xpath('//article[@class="content"]/section')
-        product_id = response.meta['id']
+        loader_review = CustomLoader(item=ReviewItem(), response=response)
+        product_id = json_data['productDetails']['product']['id']
+        reviews = json_data['productDetails']['product']["reviews"]["entries"]
         for review in reviews:
-            title = review.xpath('./h4/text()').get()
-            stars = review.xpath('./div/@aria-label').get()
-            stars = stars.split(' ')[0] if stars else None
-            author = review.xpath('./p[1]/text()').get()
-            if author is None:
-                author = review.xpath('.//span[@class="nickname"]/text()').get()
-            date = review.xpath('./p/span[@class="submission-time"]/text()').get()
-            text = review.xpath('./p[last()]/text()').get()
-
-            loader.replace_value('id', product_id)
-            loader.replace_value('title', title)
-            loader.replace_value('stars', stars)
-            loader.replace_value('author', author)
-            loader.replace_value('date', date)
-            loader.replace_value('text', text)
-
-            yield loader.load_item()
-
-        next_review_page = response.xpath('//div[@data-auto="review-list-container"]/div[2]/p[2]/a/@href').get()
-        if next_review_page is not None:
-            yield response.follow(url=next_review_page, callback=self.parse_review, meta={'id': product_id}, dont_filter=True)
+            loader_review.add_value('id', product_id)
+            title = review["summary"] if review["summary"] else 'None'
+            loader_review.add_value('title', title)
+            loader_review.add_value('stars', review["rating"]["value"])
+            author = review["syndicationSource"]["name"] if review["syndicated"] else 'A Tesco Customer'
+            loader_review.add_value('author', author)
+            loader_review.add_value('date', review["submissionTime"])
+            loader_review.add_value('text', review["text"] if review["text"] else 'None')
+            yield loader_review.load_item()
 
     @staticmethod
     def _parse_id(product_json_data):
-        _id = product_json_data['id']
-        return _id
+        product_id = product_json_data['id']
+        return product_id
 
     @staticmethod
     def _parse_image_url(product_json_data):
@@ -191,9 +206,3 @@ class TescoSpider(CrawlSpider):
         new_str = new_str.replace('\u212e', 'e')
         json_data = json.loads(new_str)
         return json_data
-
-    def get_requests(self, name=name):
-        with open('requests_links.json', encoding='utf-8') as links_json:
-            json_data = json.load(links_json)
-            for link in json_data[name]:
-                yield scrapy.Request(link, dont_filter=True)
