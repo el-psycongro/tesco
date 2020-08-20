@@ -44,7 +44,7 @@ class TescoSpider(CrawlSpider):
         Rule(LinkExtractor(
             restrict_xpaths='//div[@data-auto="review-list-container"]/div[2]/p[2]/a'), callback='parse_review',
             follow=True),
-        # RULE: open new page with product list
+        # # RULE: open new page with product list
         Rule(LinkExtractor(
                 restrict_xpaths='//nav[@class="pagination--page-selector-wrapper"]//li[last()]/a'), follow=True),
     )
@@ -103,37 +103,26 @@ class TescoSpider(CrawlSpider):
                 yield loader_bought_next.load_item()
 
         # PARSE REVIEW
-        loader_review = CustomLoader(item=ReviewItem(), response=response)
+        yield from self.parse_review(response)
+
+    def parse_review(self, response, json_data=None):
+        if json_data is None:
+            str_json_data = response.xpath('//body/@data-redux-state').get()
+            json_data = self.get_json_load_data(str_json_data)
+
+        loader = CustomLoader(item=ReviewItem(), response=response)
         product_id = json_data['productDetails']['product']['id']
         reviews = json_data['productDetails']['product']["reviews"]["entries"]
         for review in reviews:
-            loader_review.add_value('id', product_id)
+            loader.add_value('id', product_id)
             title = review["summary"] if review["summary"] else 'None'
-            loader_review.add_value('title', title)
-            loader_review.add_value('stars', review["rating"]["value"])
+            loader.add_value('title', title)
+            loader.add_value('stars', review["rating"]["value"])
             author = review["syndicationSource"]["name"] if review["syndicated"] else 'A Tesco Customer'
-            loader_review.add_value('author', author)
-            loader_review.add_value('date', review["submissionTime"])
-            loader_review.add_value('text', review["text"] if review["text"] else 'None')
-            yield loader_review.load_item()
-
-    def parse_review(self, response):
-        str_json_data = response.xpath('//body/@data-redux-state').get()
-        json_data = self.get_json_load_data(str_json_data)
-
-        loader_review = CustomLoader(item=ReviewItem(), response=response)
-        product_id = json_data['productDetails']['product']['id']
-        reviews = json_data['productDetails']['product']["reviews"]["entries"]
-        for review in reviews:
-            loader_review.add_value('id', product_id)
-            title = review["summary"] if review["summary"] else 'None'
-            loader_review.add_value('title', title)
-            loader_review.add_value('stars', review["rating"]["value"])
-            author = review["syndicationSource"]["name"] if review["syndicated"] else 'A Tesco Customer'
-            loader_review.add_value('author', author)
-            loader_review.add_value('date', review["submissionTime"])
-            loader_review.add_value('text', review["text"] if review["text"] else 'None')
-            yield loader_review.load_item()
+            loader.add_value('author', author)
+            loader.add_value('date', review["submissionTime"])
+            loader.add_value('text', review["text"] if review["text"] else 'None')
+            yield loader.load_item()
 
     @staticmethod
     def _parse_id(product_json_data):

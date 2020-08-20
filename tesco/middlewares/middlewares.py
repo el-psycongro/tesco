@@ -6,7 +6,7 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+from tesco.items.items import UsuallyBoughtNextItem
 
 class TescoSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -30,9 +30,10 @@ class TescoSpiderMiddleware:
     def process_spider_output(self, response, result, spider):
         # Called with the results returned from the Spider, after
         # it has processed the response.
-
         # Must return an iterable of Request, dict or Item objects.
+
         for i in result:
+            #print(i)
             yield i
 
     def process_spider_exception(self, response, exception, spider):

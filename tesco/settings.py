@@ -25,3 +25,7 @@ ITEM_PIPELINES = {
     'tesco.pipelines.usuallyboughtnext.UsuallyBoughtNextPipeline': 400,
     'tesco.pipelines.review.ReviewPipeline': 500,
 }
+
+# SPIDER_MIDDLEWARES = {
+#    'tesco.middlewares.middlewares.TescoSpiderMiddleware': 543,
+# }

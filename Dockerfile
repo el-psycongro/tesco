@@ -1,10 +1,8 @@
 FROM python:3
 
-ENV PYTHONIOENCODING=UTF-8
+WORKDIR /project
 
-COPY Pipfile.lock ./
-COPY Pipfile ./
+COPY ./ ./
 
 RUN pip install pipenv && pipenv install --system --deploy --ignore-pipfile
-
-WORKDIR /project
+CMD alembic upgrade head && scrapy crawl tesco

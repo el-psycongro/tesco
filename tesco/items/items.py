@@ -4,7 +4,6 @@ from scrapy import Field, Item
 from scrapy.loader.processors import TakeFirst, Compose
 from scrapy.loader import ItemLoader
 from datetime import datetime
-from scrapy.loader.processors import MapCompose
 
 
 class CustomLoader(ItemLoader):
