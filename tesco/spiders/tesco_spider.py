@@ -190,8 +190,5 @@ class TescoSpider(CrawlSpider):
         new_str = new_str.replace('\n', '')
         new_str = new_str.replace('\a', '')
         new_str = new_str.replace('\t', '')
-        new_str = new_str.replace('\u2019', '`')
-        new_str = new_str.replace('\u0301', '')
-        new_str = new_str.replace('\u212e', 'e')
         json_data = json.loads(new_str)
         return json_data
